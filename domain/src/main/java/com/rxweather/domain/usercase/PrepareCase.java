@@ -46,61 +46,76 @@ public class PrepareCase extends UseCase<SparseArray, PrepareRequest> {
     this.handlerThread = new HandlerThread("backgroundThread");
     this.handlerThread.start();
 
-    return Observable.zip(PrepareCase.this.getLocationObservable(prepareRequest.locationManager),
-        PrepareCase.this.getRequestCitiesObservable(prepareRequest.assetManager),
-        new Func2<AddressEntity, List<RequestCitiesEntity.RequestCity>, SparseArray>() {
-          @Override public SparseArray call(AddressEntity locationEntity,
-              List<RequestCitiesEntity.RequestCity> requestCities) {
+//    return Observable.zip(PrepareCase.this.getLocationObservable(prepareRequest.locationManager),
+//        PrepareCase.this.getRequestCitiesObservable(prepareRequest.assetManager),
+//        new Func2<AddressEntity, List<RequestCitiesEntity.RequestCity>, SparseArray>() {
+//          @Override public SparseArray call(AddressEntity locationEntity,
+//              List<RequestCitiesEntity.RequestCity> requestCities) {
+//
+//            SparseArray sparseArray = new SparseArray(2);
+//            sparseArray.put(Constants.LOCATION_TAG, locationEntity);
+//            sparseArray.put(Constants.FORECAST_TAG, requestCities);
+//
+//            return sparseArray;
+//          }
+//        });
+    return PrepareCase.this.getRequestCitiesObservable(prepareRequest.assetManager)
+            .map(new Func1<List<RequestCitiesEntity.RequestCity>, SparseArray>() {
+              @Override
+              public SparseArray call(List<RequestCitiesEntity.RequestCity> requestCities) {
+                SparseArray sparseArray = new SparseArray(2);
+                AddressEntity locationEntity = new AddressEntity();
+                locationEntity.city = "门头沟区";
+                locationEntity.district = "北京市";
+                locationEntity.province = "北京市";
 
-            SparseArray sparseArray = new SparseArray(2);
-            sparseArray.put(Constants.LOCATION_TAG, locationEntity);
-            sparseArray.put(Constants.FORECAST_TAG, requestCities);
-
-            return sparseArray;
-          }
-        });
+                sparseArray.put(Constants.LOCATION_TAG, locationEntity);
+                sparseArray.put(Constants.FORECAST_TAG, requestCities);
+                return sparseArray;
+              }
+            });
   }
 
-  @NonNull
-  private Observable<AddressEntity> getLocationObservable(final LocationManager locationManager) {
-
-    return Observable.create(new Observable.OnSubscribe<Location>() {
-
-      @Override public void call(final Subscriber<? super Location> subscriber) {
-
-        final LocationListener locationListener = new LocationListenerAdapter() {
-          public void onLocationChanged(final Location location) {
-            if (!subscriber.isUnsubscribed()) {
-              subscriber.onNext(location);
-              subscriber.onCompleted();
-            }
-            locationManager.removeUpdates(this);
-            handlerThread.getLooper().quit();
-          }
-        };
-
-        subscriber.add(new MainThreadSubscription() {
-          @Override protected void onUnsubscribe() {
-            locationManager.removeUpdates(locationListener);
-            handlerThread.getLooper().quit();
-          }
-        });
-
-        final Criteria locationCriteria = new Criteria();
-        locationCriteria.setAccuracy(Criteria.ACCURACY_COARSE);
-        locationCriteria.setPowerRequirement(Criteria.POWER_LOW);
-        final String locationProvider = locationManager.getBestProvider(locationCriteria, true);
-
-        locationManager.requestSingleUpdate(locationProvider, locationListener,
-            handlerThread.getLooper());
-      }
-    }).concatMap(new Func1<Location, Observable<AddressEntity>>() {
-      @Override public Observable<AddressEntity> call(Location location) {
-
-        return ServiceRest.getInstance().getCityByCoordinate(location);
-      }
-    });
-  }
+//  @NonNull
+//  private Observable<AddressEntity> getLocationObservable(final LocationManager locationManager) {
+//
+//    return Observable.create(new Observable.OnSubscribe<Location>() {
+//
+//      @Override public void call(final Subscriber<? super Location> subscriber) {
+//
+//        final LocationListener locationListener = new LocationListenerAdapter() {
+//          public void onLocationChanged(final Location location) {
+//            if (!subscriber.isUnsubscribed()) {
+//              subscriber.onNext(location);
+//              subscriber.onCompleted();
+//            }
+//            locationManager.removeUpdates(this);
+//            handlerThread.getLooper().quit();
+//          }
+//        };
+//
+//        subscriber.add(new MainThreadSubscription() {
+//          @Override protected void onUnsubscribe() {
+//            locationManager.removeUpdates(locationListener);
+//            handlerThread.getLooper().quit();
+//          }
+//        });
+//
+//        final Criteria locationCriteria = new Criteria();
+//        locationCriteria.setAccuracy(Criteria.ACCURACY_COARSE);
+//        locationCriteria.setPowerRequirement(Criteria.POWER_LOW);
+//        final String locationProvider = locationManager.getBestProvider(locationCriteria, true);
+//
+//        locationManager.requestSingleUpdate(locationProvider, locationListener,
+//            handlerThread.getLooper());
+//      }
+//    }).concatMap(new Func1<Location, Observable<AddressEntity>>() {
+//      @Override public Observable<AddressEntity> call(Location location) {
+//
+//        return ServiceRest.getInstance().getCityByCoordinate(location);
+//      }
+//    });
+//  }
 
   private Observable<List<RequestCitiesEntity.RequestCity>> getRequestCitiesObservable(
       final AssetManager assetManager) {

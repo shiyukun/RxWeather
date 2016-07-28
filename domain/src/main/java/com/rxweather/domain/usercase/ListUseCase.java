@@ -16,6 +16,8 @@ public class ListUseCase extends UseCase<List<MainEntity>, ListRequest> {
 
   @Override protected Observable<List<MainEntity>> interactor(ListRequest listRequest) {
 
-    return ServiceRest.getInstance().getWeatherByCityOrCityId(listRequest.addressEntity, listRequest.requestCityList);
+    return ServiceRest.getInstance().getWeatherByCityOrCityId(
+//            listRequest.addressEntity,
+            listRequest.requestCityList);
   }
 }

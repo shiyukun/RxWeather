@@ -85,19 +85,22 @@ public class ServiceRest {
   /**
    * 获取天气预报
    */
-  public Observable<List<MainEntity>> getWeatherByCityOrCityId(AddressEntity locationEntity,
+  public Observable<List<MainEntity>> getWeatherByCityOrCityId(
+//          AddressEntity locationEntity,
       List<RequestCitiesEntity.RequestCity> requestCities) {
 
-    return Observable.zip(ServiceRest.this.getForecastByLocation(locationEntity),
-        ServiceRest.this.getForecastByCity(requestCities),
-        new Func2<MainEntity, List<MainEntity>, List<MainEntity>>() {
-          @Override
-          public List<MainEntity> call(MainEntity mainEntity, List<MainEntity> mainEntities) {
-
-            mainEntities.add(0, mainEntity);
-            return mainEntities;
-          }
-        }).compose(SchedulersCompat.<List<MainEntity>>observeOnMainThread());
+//    return Observable.zip(ServiceRest.this.getForecastByLocation(locationEntity),
+//        ServiceRest.this.getForecastByCity(requestCities),
+//        new Func2<MainEntity, List<MainEntity>, List<MainEntity>>() {
+//          @Override
+//          public List<MainEntity> call(MainEntity mainEntity, List<MainEntity> mainEntities) {
+//
+//            mainEntities.add(0, mainEntity);
+//            return mainEntities;
+//          }
+//        }).compose(SchedulersCompat.<List<MainEntity>>observeOnMainThread());
+      return getForecastByCity(requestCities)
+              .compose(SchedulersCompat.<List<MainEntity>>observeOnMainThread());
   }
 
   /**
